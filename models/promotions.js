@@ -26,7 +26,11 @@ const promotionSchema = new Schema({
     description:{
         type:String,
         required:true
-    }
+    },
+    featured:{
+        type:Boolean,
+        default:false
+    },
 },{
     timestamps:true
 });
