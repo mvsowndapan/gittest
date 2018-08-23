@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const authenticate = require('../authenticate');
 
 const Dishes = require('../models/dishes');
-mongoose.plugin(schema => { schema.options.usePushEach = true });
+// mongoose.plugin(schema => { schema.options.usePushEach = true });
 const dishRouter = express.Router();
 dishRouter.use(bodyParser.json());
 
@@ -15,10 +15,11 @@ dishRouter.use(bodyParser.json());
 dishRouter.route('/')
     .get((req, res, next) => {
         Dishes.find({})
-            .then((dish) => {
+        //.populate('comments.author')
+        .then((dishes) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(dish);
+                res.json(dishes);
             },(err) => next(err))
             .catch((err) => next(err));
     })
@@ -51,6 +52,7 @@ dishRouter.route('/')
 dishRouter.route('/:dishId')
 .get((req,res,next) => {
      Dishes.findById(req.params.dishId)
+     .populate('comments.author')
      .then((dish) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -91,6 +93,7 @@ dishRouter.route('/:dishId/comments')
         
         console.log("Entered Comments ");
         Dishes.findById(req.params.dishId)
+        .populate('comments.author')
             .then((dish) => {
                 console.log(dish);
                 if(dish != null){
@@ -110,7 +113,10 @@ dishRouter.route('/:dishId/comments')
     .post(authenticate.verifyUser,(req, res, next) => {
         Dishes.findById(req.params.dishId)
         .then((dish) => {
+            console.log(req.user._id);
                 if(dish != null){
+                    req.body.author = req.user._id;
+                    console.log(req.user._id);
                     dish.comments.push(req.body);
                     dish.save()
                     .then((dish) =>{
@@ -160,6 +166,7 @@ dishRouter.route('/:dishId/comments')
 dishRouter.route('/:dishId/comments/:commentId')
 .get((req,res,next) => {
      Dishes.findById(req.params.dishId)
+     .populate('comments.author')
      .then((dish) => {
         if(dish != null && dish.comments.id(req.params.commentId) != null){
             res.statusCode = 200;
