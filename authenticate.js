@@ -37,3 +37,28 @@ exports.jwtPassport = passport.use(new jwtStrategy(opts,(jwt_payload,done) => {
 }));
 
 exports.verifyUser = passport.authenticate('jwt',{session:false});
+
+exports.verifyUser = passport.authenticate('jwt', { session: false });
+
+exports.verifyAdmin = (req, res, next) => {
+    if (!req.user.admin) {
+        err = new Error('You are not authorized to perform this operation');
+        err.status = 403;
+        return next(err);
+    } else
+        return next();
+};
+
+exports.verifyUserSame = (req, res, next) => {
+    Dishes.findById(req.params.dishId)
+        .then((dish) => {
+            if (!req.user._id.equals(dish.comments.id(req.params.commentId).author)) {
+                err = new Error('You are not authorized to perform this operation');
+                err.status = 403;
+                return next(err)
+            } else {
+                return next();
+            }
+        }, (err) => next(err))
+        .catch((err) => next(err));
+};
